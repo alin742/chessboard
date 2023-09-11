@@ -13,4 +13,4 @@ $ ./build.sh
 
 Currently the project is still under construction, the Board is set, the pieces are in place and the movements are still being worked on.
 
-![ChessBoard]{imgs/chessboard.png}
+![ChessBoard](imgs/chessboard.png)
