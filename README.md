@@ -1,5 +1,5 @@
 # Chessboard
-A coop chess engine, POSIX compilant. it takes in player input from the ´stdin´ and outputs the game state and result to the ´stdout´ with rudimentary visualizations.
+A coop chess engine, POSIX compilant. it takes in player input from the **stdin** and outputs the game state and result to the **stdout** with rudimentary visualizations.
 
 ## Build
 
