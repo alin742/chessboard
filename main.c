@@ -5,6 +5,12 @@
 
 #define W 8
 #define H 8
+#define BG_WHITE "\x1b[48;5;250m"
+#define BG_GRAY "\x1b[48;5;245m"
+#define BG_CYAN "\x1b[30;46m"
+#define FG_BLACK "\x1b[1;30m"
+#define FG_WHITE "\x1b[1;37m"
+#define RESET "\x1b[0m"
 
 typedef enum
 {
@@ -90,38 +96,35 @@ cellName ( char *name, int index )
   snprintf(name, 2, "%c%i", column+column_offset, row+row_offset);
 }
 
-char
-formatPiece ( Piece piece )
+const char *
+formatPiece ( Piece *piece )
 {
-  bool isWhite = piece.color == WHITE;
-  switch (piece.type) {
+  bool isWhite = piece->color == WHITE;
+  static char format[] = "                   ";
+  int n = 18;
+  switch (piece->type) {
     case PAWN:
-      if (isWhite) return 'P';
-      else return 'p';
+      snprintf(format, n, "%s♟︎", isWhite ? FG_WHITE : FG_BLACK);
       break;
     case ROOK:
-      if (isWhite) return 'R';
-      else return 'r';
+      snprintf(format, n, "%s♜", isWhite ? FG_WHITE : FG_BLACK);
       break;
     case KNIGHT:
-      if (isWhite) return 'N';
-      else return 'n';
+      snprintf(format, n, "%s♞", isWhite ? FG_WHITE : FG_BLACK);
       break;
     case BISHOP:
-      if (isWhite) return 'B';
-      else return 'b';
+      snprintf(format, n, "%s♝", isWhite ? FG_WHITE : FG_BLACK);
       break;
     case KING:
-      if (isWhite) return 'K';
-      else return 'k';
+      snprintf(format, n, "%s♚", isWhite ? FG_WHITE : FG_BLACK);
       break;
     case QUEEN:
-      if (isWhite) return 'Q';
-      else return 'q';
+      snprintf(format, n, "%s♛", isWhite ? FG_WHITE : FG_BLACK);
       break;
     default:
       assert(false && "Unreachable!!\n");
   }
+  return format;
 }
 
 void
@@ -178,7 +181,7 @@ checkWay(Cell *board, Position curr, Position dest)
   Position delta = {0};
   delta.row = sgn(dest.row - curr.row);
   delta.col = sgn(dest.col - curr.col);
-  Position new = {0};
+  Position new = { 0 };
   new.row = curr.row - delta.row;
   new.col = curr.col - delta.col;
   return checkWay(board, new, dest);
@@ -254,56 +257,39 @@ putPieces ( Cell *board, Piece *player1, Piece *player2 )
 }
 
 void
-printBoard ( Cell *board )
+printBoard( Cell *board )
 {
-  printf("┌");
-  for (int i = 0; i < W-1; i++) printf("─────┬");
-  printf("─────┐\n");
-  for (int i = 0; i < H-1; i++) {
-    printf("│");
-    for (int j = 0; j < W; j++) {
-      if (board[i*W+j].piece == NULL) {
-        switch (board[i*W+j].color) {
-          case WHITE: printf("     │"); break;
-          case BLACK: printf("▒▒▒▒▒│"); break;
+  char space[15] = "      ";
+  char format[256];
+  printf("%s A  B  C  D  E  F  G  H \n", space);
+  for (int i = 0; i < W; i++) {
+    printf("%s", space);
+    for (int j = 0; j < H; j++) {
+      Cell cell = board[i*W+j];
+      if (cell.piece == NULL) {
+        switch (cell.color) {
+          case WHITE: printf("%s   ", BG_WHITE); break;
+          case BLACK: printf("%s   ", BG_CYAN); break;
         }
       } else {
-        switch (board[i*W+j].color) {
-          case WHITE: printf("  \e[1m%c\e[0m  │", formatPiece(*board[i*W+j].piece)); break;
-          case BLACK: printf("▒▒\e[1m%c\e[0m▒▒│", formatPiece(*board[i*W+j].piece)); break;
+        switch (cell.color) {
+          case WHITE: printf("%s %s ", BG_WHITE, formatPiece(cell.piece)); break;
+          case BLACK: printf("%s %s ", BG_CYAN, formatPiece(cell.piece)); break;
         }
       }
     }
-    printf("\n├");
-    for (int i = 0; i < W-1; i++) printf("─────┼");
-    printf("─────┤\n");
+    printf("%s %d\n", RESET, 8 - i);
   }
-  printf("│");
-  for (int j = 0; j < W; j++) {
-    if (board[(H-1)*W+j].piece == NULL) {
-      switch (board[(H-1)*W+j].color) {
-        case WHITE: printf("     │"); break;
-        case BLACK: printf("▒▒▒▒▒│"); break;
-      }
-    } else {
-      switch (board[(H-1)*W+j].color) {
-        case WHITE: printf("  \e[1m%c\e[0m  │", formatPiece(*board[(H-1)*W+j].piece)); break;
-        case BLACK: printf("▒▒\e[1m%c\e[0m▒▒│", formatPiece(*board[(H-1)*W+j].piece)); break;
-      }
-    }
-  }
-  printf("\n└");
-  for (int i = 0; i < W-1; i++) printf("─────┴");
-  printf("─────┘\n");
 }
 
 void
 printPlayer ( Piece *player )
 {
+  printf("%s ", BG_GRAY);
   for (int i = 0; i < 2*W-1; i++) {
-    printf("%c, ", formatPiece(player[i]));
+    printf("%s, ", formatPiece(&player[i]));
   }
-  printf("%c\n", formatPiece(player[2*W-1]));
+  printf("%s  %s\n", formatPiece(&player[2*W-1]), RESET);
 }
 
 void
@@ -320,10 +306,11 @@ main ( int argc, char **argv )
 {
   ChessGame game = {0};
   newGame(&game);
-  printf("White Player: ");
+  printf("      White Player: ");
   printPlayer(game.white_player);
-  printf("Black Player: ");
+  printf("      Black Player: ");
   printPlayer(game.black_player);
+  printf("\n");
   printBoard(game.board);
   return 0;
 }
