@@ -5,9 +5,9 @@ A coop chess engine, POSIX compilant. it takes in player input from the ´stdin�
 
 To build and test, run the ´build.sh´ shell script:
 
-´´´{bash}
+```{bash}
 $ ./build.sh
-´´´
+```
 
 ## Current State
 
